@@ -1,0 +1,8 @@
+{
+  "chug": {
+    "category": "block",
+    "sounds": [
+      "create_ss:chug"
+    ]
+  }
+}
