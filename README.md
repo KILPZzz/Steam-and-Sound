@@ -4,16 +4,16 @@
 </div>
 
 
-<h1 align="left">About the mod</h1>
-Create: Steam & Sound is a mod that will add Audiovisual and new Effects to the Create Mod Trains
+<h3 align="left">About the mod</h3>
+Create: Steam & Sound is a mod that will add Audiovisual and new effects to the Create Mod Trains
 
 
-<h1 align="left">Status</h1>
+<h3 align="left">Status</h3>
 Development, alot to do rn
 
 
 
-<h1 align="left">Install</h1> 
+<h3 align="left">Install</h3> 
 - IntellJ or any IDEA that supports modding
 - Java
 - 🙏
