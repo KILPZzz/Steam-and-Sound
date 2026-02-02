@@ -27,7 +27,7 @@ public class AdvancedControllerInputPacket extends SimplePacketBase {
     private boolean stopControlling;
 
     public AdvancedControllerInputPacket(Collection<Integer> activatedButtons, boolean press, int contraptionEntityId,
-                               BlockPos controlsPos, boolean stopControlling) {
+                                         BlockPos controlsPos, boolean stopControlling) {
         this.contraptionEntityId = contraptionEntityId;
         this.activatedButtons = activatedButtons;
         this.press = press;
@@ -81,5 +81,4 @@ public class AdvancedControllerInputPacket extends SimplePacketBase {
         return true;
     }
 }
-
 

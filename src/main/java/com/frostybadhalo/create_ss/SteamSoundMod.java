@@ -81,7 +81,7 @@ public class SteamSoundMod {
         if (!event.getLevel()
                 .isClientSide())
             return;
-       // AdvancedControlsHandler.levelUnloaded(event.getLevel());
+        AdvancedControlsHandler.levelUnloaded(event.getLevel());
     }
 
     @SubscribeEvent

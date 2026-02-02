@@ -76,7 +76,7 @@ public class AdvancedControlsMovementBehaviour implements MovementBehaviour {
 
 		if (AdvancedControlsHandler.getContraption() == entity && AdvancedControlsHandler.getControlsPos() != null
 				&& AdvancedControlsHandler.getControlsPos().equals(context.localPos)) {
-			Collection<Integer> pressed = ControlsHandler.currentlyPressed;
+			Collection<Integer> pressed = AdvancedControlsHandler.currentlyPressed;
 			angles.equipAnimation.chase(1, .2f, Chaser.EXP);
 			angles.steering.chase((pressed.contains(3) ? 1 : 0) + (pressed.contains(2) ? -1 : 0), 0.2f, Chaser.EXP);
 			float f = cce.movingBackwards ^ inverted ? -1 : 1;

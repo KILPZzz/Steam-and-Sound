@@ -7,15 +7,17 @@ import com.frostybadhalo.create_ss.registry.SteamSoundKeybind;
 import com.simibubi.create.AllPackets;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler;
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInputPacket;
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsStopControllingPacket;
 import com.simibubi.create.foundation.utility.ControlsUtil;
 import com.simibubi.create.foundation.utility.CreateLang;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelAccessor;
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
-import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,46 +29,61 @@ public class AdvancedControlsHandler {
 
 
 
-    private static WeakReference<AbstractContraptionEntity> entityRef = new WeakReference<>(null);
-    private static BlockPos controlsPos;
+    public static Collection<Integer> currentlyPressed = new HashSet<>();
+
+    public static int PACKET_RATE = 5;
     private static int packetCooldown;
 
+    private static WeakReference<AbstractContraptionEntity> entityRef = new WeakReference<>(null);
+    private static BlockPos controlsPos;
 
-    public static void startControlling(AbstractContraptionEntity entity, BlockPos pos) {
-
-        ControlsHandler.startControlling(entity, pos);
-
-        //Minecraft.getInstance().player.displayClientMessage(
-       //         CreateLang.translateDirect("contraption.controls.start_controlling", entity.getContraptionName()), true);
+    public static void levelUnloaded(LevelAccessor level) {
+        packetCooldown = 0;
+        entityRef = new WeakReference<>(null);
+        controlsPos = null;
+        currentlyPressed.clear();
     }
 
-    //public static void stopControlling() {
+    public static void startControlling(AbstractContraptionEntity entity, BlockPos controllerLocalPos) {
+        entityRef = new WeakReference<>(entity);
+        controlsPos = controllerLocalPos;
 
-    //    System.out.println("Handler.stopControlling | entityRef=" + entityRef.get() + " controlsPos=" + controlsPos);
+        Minecraft.getInstance().player.displayClientMessage(
+                CreateLang.translateDirect("contraption.controls.start_controlling", entity.getContraptionName()), true);
+    }
 
+    public static void stopControlling() {
+        ControlsUtil.getControls()
+                .forEach(kb -> kb.setDown(ControlsUtil.isActuallyPressed(kb)));
+        AbstractContraptionEntity abstractContraptionEntity = entityRef.get();
 
-    //    entityRef = new WeakReference<>(null);
-    //    controlsPos = null;
-   //     currentlyPressed.clear();
-    //    packetCooldown = 0;
+        if (!currentlyPressed.isEmpty() && abstractContraptionEntity != null)
+            AllPackets.getChannel().sendToServer(new ControlsInputPacket(currentlyPressed, false,
+                    abstractContraptionEntity.getId(), controlsPos, false));
 
+        packetCooldown = 0;
+        entityRef = new WeakReference<>(null);
+        controlsPos = null;
+        currentlyPressed.clear();
 
-
-     //   Minecraft.getInstance().player.displayClientMessage(
-    //            CreateLang.translateDirect("contraption.controls.stop_controlling"), true);
-    //}
+        Minecraft.getInstance().player.displayClientMessage(CreateLang.translateDirect("contraption.controls.stop_controlling"),
+                true);
+    }
 
     public static void tick() {
         AbstractContraptionEntity entity = entityRef.get();
-        if (entity == null) return;
+        if (entity == null)
+            return;
+        if (packetCooldown > 0)
+            packetCooldown--;
 
-        if (packetCooldown > 0) packetCooldown--;
-
-        // ESC ou SHIFT -> sair
-        if (Minecraft.getInstance().player.isShiftKeyDown() || InputConstants.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_ESCAPE)) {
+        if (entity.isRemoved() || InputConstants.isKeyDown(Minecraft.getInstance()
+                .getWindow()
+                .getWindow(), GLFW.GLFW_KEY_ESCAPE)) {
             BlockPos pos = controlsPos;
-            AllPackets.getChannel().sendToServer(new ControlsStopControllingPacket());
-            ControlsHandler.stopControlling();
+            stopControlling();
+            AllPackets.getChannel()
+                    .sendToServer(new ControlsInputPacket(currentlyPressed, false, entity.getId(), pos, true));
             return;
         }
 
@@ -77,17 +94,35 @@ public class AdvancedControlsHandler {
                 pressedKeys.add(i);
         }
 
-        if (SteamSoundKeybind.KEY_ACCELERATE.isDown()) { pressedKeys.add(6); }
-        if (SteamSoundKeybind.KEY_DECELERATE.isDown()) { pressedKeys.add(7); }
+        Collection<Integer> newKeys = new HashSet<>(pressedKeys);
+        Collection<Integer> releasedKeys = currentlyPressed;
+        newKeys.removeAll(releasedKeys);
+        releasedKeys.removeAll(pressedKeys);
 
-        if (!pressedKeys.isEmpty() && packetCooldown == 0) {
-            SSPackets.getChannel().sendToServer(
-                    new AdvancedControllerInputPacket(pressedKeys, true, entity.getId(), controlsPos, false)
-            );
-            packetCooldown = ControlsHandler.PACKET_RATE;
+        // Released Keys
+        if (!releasedKeys.isEmpty()) {
+            AllPackets.getChannel()
+                    .sendToServer(new ControlsInputPacket(releasedKeys, false, entity.getId(), controlsPos, false));
+//			AllSoundEvents.CONTROLLER_CLICK.playAt(player.level, player.blockPosition(), 1f, .5f, true);
         }
 
-        ControlsHandler.currentlyPressed = pressedKeys;
+        // Newly Pressed Keys
+        if (!newKeys.isEmpty()) {
+            AllPackets.getChannel().sendToServer(new ControlsInputPacket(newKeys, true, entity.getId(), controlsPos, false));
+            packetCooldown = PACKET_RATE;
+//			AllSoundEvents.CONTROLLER_CLICK.playAt(player.level, player.blockPosition(), 1f, .75f, true);
+        }
+
+        // Keepalive Pressed Keys
+        if (packetCooldown == 0) {
+//			if (!pressedKeys.isEmpty()) {
+            AllPackets.getChannel()
+                    .sendToServer(new ControlsInputPacket(pressedKeys, true, entity.getId(), controlsPos, false));
+            packetCooldown = PACKET_RATE;
+//			}
+        }
+
+        currentlyPressed = pressedKeys;
         controls.forEach(kb -> kb.setDown(false));
     }
 

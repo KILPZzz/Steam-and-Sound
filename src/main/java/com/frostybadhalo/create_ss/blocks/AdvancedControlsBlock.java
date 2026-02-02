@@ -45,12 +45,13 @@ public class AdvancedControlsBlock extends HorizontalDirectionalBlock implements
 
     //--------- TIPO DE FORMA ----------//
     @Override
-    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState,
-                                  LevelAccessor pLevel, BlockPos pCurrentPos, BlockPos pNeighborPos) {
+    public BlockState updateShape(BlockState pState, Direction pDirection, BlockState pNeighborState, LevelAccessor pLevel,
+                                  BlockPos pCurrentPos, BlockPos pNeighborPos) {
+        System.out.println(" Mudando Shape para.. ");
         updateWater(pLevel, pState, pCurrentPos);
-        //System.out.println("MUDANDO O SHAPE PARA..");
         return pState.setValue(OPEN, pLevel instanceof ContraptionWorld);
     }
+
 
 
     @Override

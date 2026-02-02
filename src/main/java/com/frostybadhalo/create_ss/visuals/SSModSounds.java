@@ -11,9 +11,6 @@ public class SSModSounds {
         DeferredRegister.create(ForgeRegistries.SOUND_EVENTS, "create_ss");
 
     public static final RegistryObject<SoundEvent> CHUG = SOUND_EVENTS.register("chug",
-            () -> SoundEvent.createVariableRangeEvent(new ResourceLocation(
-                    "create_ss",
-                    "chug")
-            )
+            () -> SoundEvent.createVariableRangeEvent(new ResourceLocation("create_ss", "chug"))
     );
 }

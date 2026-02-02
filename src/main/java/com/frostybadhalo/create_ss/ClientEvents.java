@@ -33,13 +33,13 @@ public class ClientEvents {
     public static void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase == TickEvent.Phase.END) {
             ADVTrainHUD.tick();
-            //AdvancedControlsHandler.tick();
+            AdvancedControlsHandler.tick();
         }
     }
 
     @SubscribeEvent public static void onClientSetup(FMLClientSetupEvent event) {
         BlockEntityRenderers.register( SSBlockEntities.ADVANCED_CONTROLLER.get(),
-                ctx -> new AdvancedControllerBlockEntityRenderer(ctx)
+                AdvancedControllerBlockEntityRenderer::new
         );
     }
 

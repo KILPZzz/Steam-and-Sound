@@ -15,6 +15,6 @@ public class SSPartialModels {
 
 
     public static void init() {
-        // Apenas para inicializar se necessário
+
     }
 }

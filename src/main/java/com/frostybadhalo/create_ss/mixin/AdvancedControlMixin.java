@@ -23,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Collection;
 import java.util.UUID;
-
+/*
 @Mixin(CarriageContraptionEntity.class)
 public abstract class AdvancedControlMixin {
 
@@ -34,7 +34,7 @@ public abstract class AdvancedControlMixin {
     @Inject(method = "control", at = @At("HEAD"), cancellable = true, remap = false)
     private void injectControl(BlockPos controlsLocalPos, Collection<Integer> heldControls, Player player, CallbackInfoReturnable<Boolean> cir) {
 
-        System.out.println("TENTANDO MIXIONG DE OVERLAY");
+        //System.out.println("TENTANDO MIXIONG DE OVERLAY");
 
         CarriageContraptionEntity self = (CarriageContraptionEntity)(Object)this;
 
@@ -54,7 +54,7 @@ public abstract class AdvancedControlMixin {
         if (state.getBlock() instanceof AdvancedControlsBlock) {
 
             if (hudPacketCooldown-- <= 0 && player instanceof ServerPlayer sp) {
-                System.out.println("TENTANDO MIXIONG DE OVERLA2323Y");
+                //System.out.println("TENTANDO MIXIONG DE OVERLA2323Y");
                 SSPackets.getChannel().send(PacketDistributor.PLAYER.with(() -> sp), new AdvancedHUDPacket(self.getCarriage().train));
                 hudPacketCooldown = 5;
             }
@@ -87,6 +87,10 @@ public abstract class AdvancedControlMixin {
         }
     }
 }
+
+
+
+ */
 
 
 

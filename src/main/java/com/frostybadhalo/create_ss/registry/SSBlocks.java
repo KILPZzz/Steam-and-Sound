@@ -10,6 +10,9 @@ import com.frostybadhalo.create_ss.blocks.SCMBlock;
 import com.simibubi.create.api.behaviour.interaction.MovingInteractionBehaviour;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsBlock;
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsInteractionBehaviour;
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsMovementBehaviour;
 import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.BlockEntry;

@@ -4,12 +4,15 @@ package com.frostybadhalo.create_ss.blocks;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.frostybadhalo.create_ss.visuals.SSModSounds;
+import com.simibubi.create.content.trains.bogey.AbstractBogeyBlock;
 import com.weido.create_bb.blocks.BBBogieBlockEntity;
+import com.weido.create_bb.registry.BogieBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public class SCMSoundBehaviour implements MovementBehaviour {
@@ -25,6 +28,8 @@ public class SCMSoundBehaviour implements MovementBehaviour {
 
     // Dados temporários para cada contexto
     private static class SoundData {
+        int lastQuadrant = -1;
+
         long lastSoundTime = 0;
         double distanceAccumulator = 0;
         float pitch = 1.0f;
@@ -60,28 +65,74 @@ public class SCMSoundBehaviour implements MovementBehaviour {
         // Map speed to interval: higher speed = lower interval
         float t = (clampedSpeed - (float)MIN_SPEED) / ((float)MAX_SPEED - (float)MIN_SPEED); // 0 (slow) to 1 (fast)
         double interval = MAX_INTERVAL - t * (MAX_INTERVAL - MIN_INTERVAL);
-        float pitch = MIN_PITCH + t * (MAX_PITCH - MIN_PITCH);
+        float basePitch = MIN_PITCH + t * (MAX_PITCH - MIN_PITCH);
 
         // Debug output for tuning
         if (level.isClientSide && now % 20 == 0) {
-            System.out.printf("[SCMSoundBehaviour] animationSpeed=%.2f, t=%.2f, interval=%.2f, pitch=%.2f\n", animationSpeed, t, interval, pitch);
+            System.out.printf("[SCMSoundBehaviour] animationSpeed=%.2f, t=%.2f, interval=%.2f, \n", animationSpeed, t, interval);
         }
 
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof BBBogieBlockEntity bogey) {
-            float angle = bogey.getVirtualAngle(0);
-            if (Math.abs(angle - 90f) < 0.5f) {
-                System.out.println("Roda está a ~90°");
+
+
+        double wheelRadius = 1.0;
+        double wheelPerimeter = 2 * Math.PI * wheelRadius;
+
+// acumula distância percorrida
+        double progress = context.data.getDouble("progress");
+        progress += context.motion.length();
+
+
+        double quarterTurn = wheelPerimeter / 4.0;
+
+        int quadrantCount = (int)(progress / quarterTurn);
+        int lastQuadrant = context.data.getInt("lastQuadrant");
+
+
+        if (quadrantCount != lastQuadrant) {
+            context.data.putInt("lastQuadrant", quadrantCount);
+
+            float multiplier;
+            switch (quadrantCount % 4) {
+                case 0: multiplier = 0.95f; break;
+                case 1: multiplier = 1.05f; break;
+                case 2: multiplier = 1.15f; break;
+                case 3: multiplier = 1.25f; break;
+                default: multiplier = 1.0f;
+            }
+
+
+            float finalPitch = basePitch * multiplier;
+
+            System.out.println("CHUG! Quadrante " + (quadrantCount % 4) + " Antigo=" + lastQuadrant );
+            level.playSound(null, pos, SSModSounds.CHUG.get(), SoundSource.BLOCKS, 1.0F, finalPitch);
+
+            if (progress >= wheelPerimeter) {
+                progress = 0.0;
+                context.data.putDouble("progress", progress);
+
             }
         }
 
-
-        if ( now - data.lastSoundTime >= interval ) {
-            data.lastSoundTime = now;
-            if (!level.isClientSide) {
-                level.playSound(null, pos, SSModSounds.CHUG.get(), SoundSource.BLOCKS, 1.0F, pitch);
-            }
+        if (progress >= wheelPerimeter) {
+            progress = 0.0;
+            context.data.putDouble("progress", progress);
+            //context.data.putInt("lastQuadrant", -1);
+            //
+        } else {
+            context.data.putDouble("progress", progress);
         }
+
+// reseta progress quando completar volta
+
+
+
+
+
+
+
+
+
+
     }
 
     @Override
